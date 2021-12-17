@@ -8,6 +8,7 @@
     <title>Hello</title>
 </head>
 <body>
-    <h1>Hello {{ prenom }} {{ nom }}</h1>
+    <p>Aujourd'hui on est le : {{ "now" | date("d/m/Y") }}</p>
+    <h1>Hello {{ prenom | capitalize }} {{ nom | capitalize }}</h1>
 </body>
 </html>
