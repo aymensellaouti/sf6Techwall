@@ -1,17 +1,10 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{{ firstname }} {{ name }}</title>
+{% extends 'template.html.twig' %}
+{% block title %}
+    {{ firstname }} {{ name }}
+{% endblock %}
 
-</head>
-<body>
-<div>
+{% block body %}
     <h1>With love from {{ firstname }} {{ name }}</h1>
     <p>Bonjour Techwall Sf6</p>
-</div>
-</body>
-</html>
+    Mon url absolue est  : {{ url('first') }}
+{% endblock %}
