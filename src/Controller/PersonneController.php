@@ -77,7 +77,7 @@ class PersonneController extends AbstractController
 //        $personne2->setAge('3');
 
         // Ajouter l'operation d'insertion de la personne dans ma transaction
-//        $entityManager->persist($personne);
+        $entityManager->persist($personne);
 //        $entityManager->persist($personne2);
 
         //Exécute la transaction Todo
