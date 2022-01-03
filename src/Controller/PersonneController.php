@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Personne;
+use App\Form\PersonneType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -62,29 +64,47 @@ class PersonneController extends AbstractController
         }
         return $this->render('personne/detail.html.twig', ['personne' => $personne]);
     }
-    #[Route('/add', name: 'personne.add')]
-    public function addPersonne(ManagerRegistry $doctrine): Response
+    #[Route('/edit/{id?0}', name: 'personne.edit')]
+    public function addPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request): Response
     {
+        $new = false;
         //$this->getDoctrine() : Version Sf <= 5
-        $entityManager = $doctrine->getManager();
-        $personne = new Personne();
-        $personne->setFirstname('Aymen');
-        $personne->setName('Sellaouti');
-        $personne->setAge('39');
-//        $personne2 = new Personne();
-//        $personne2->setFirstname('Skander');
-//        $personne2->setName('Sellaouti');
-//        $personne2->setAge('3');
+        if (!$personne) {
+            $new = true;
+            $personne = new Personne();
+        }
 
-        // Ajouter l'operation d'insertion de la personne dans ma transaction
-        $entityManager->persist($personne);
-//        $entityManager->persist($personne2);
+        // $personne est l'image de notre formulaire
+        $form = $this->createForm(PersonneType::class, $personne);
+        $form->remove('createdAt');
+        $form->remove('updatedAt');
+        // Mn formulaire va aller traiter la requete
+        $form->handleRequest($request);
+        //Est ce que le formulaire a été soumis
+        if($form->isSubmitted()) {
+            // si oui,
+            // on va ajouter l'objet personne dans la base de données
+            $manager = $doctrine->getManager();
+            $manager->persist($personne);
 
-        //Exécute la transaction Todo
-        $entityManager->flush();
-        return $this->render('personne/detail.html.twig', [
-            'personne' => $personne,
-        ]);
+            $manager->flush();
+            // Afficher un mssage de succès
+            if($new) {
+                $message = " a été ajouté avec succès";
+            } else {
+                $message = " a été mis à jour avec succès";
+            }
+            $this->addFlash('success',$personne->getName(). $message );
+            // Rediriger verts la liste des personne
+            return $this->redirectToRoute('personne.list');
+        } else {
+            //Sinon
+            //On affiche notre formulaire
+            return $this->render('personne/add-personne.html.twig', [
+                'form' => $form->createView()
+            ]);
+        }
+
     }
     #[Route('/delete/{id}', name: 'personne.delete')]
     public function deletePersonne(Personne $personne = null, ManagerRegistry $doctrine): RedirectResponse {
