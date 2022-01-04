@@ -4,16 +4,26 @@ namespace App\Controller;
 
 use App\Entity\Personne;
 use App\Form\PersonneType;
+use App\Service\Helpers;
+use App\Service\MailerService;
+use App\Service\UploaderService;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('personne')]
 class PersonneController extends AbstractController
 {
+
+    public function __construct(private LoggerInterface $logger, private Helpers $helper)
+    {}
+
     #[Route('/', name: 'personne.list')]
     public function index(ManagerRegistry $doctrine): Response {
         $repository = $doctrine->getRepository(Personne::class);
@@ -23,6 +33,7 @@ class PersonneController extends AbstractController
 
     #[Route('/alls/age/{ageMin}/{ageMax}', name: 'personne.list.age')]
     public function personnesByAge(ManagerRegistry $doctrine, $ageMin, $ageMax): Response {
+
         $repository = $doctrine->getRepository(Personne::class);
         $personnes = $repository->findPersonnesByAgeInterval($ageMin, $ageMax);
         return $this->render('personne/index.html.twig', ['personnes' => $personnes]);
@@ -40,6 +51,7 @@ class PersonneController extends AbstractController
 
     #[Route('/alls/{page?1}/{nbre?12}', name: 'personne.list.alls')]
     public function indexAlls(ManagerRegistry $doctrine, $page, $nbre): Response {
+        echo ($this->helper->sayCc());
         $repository = $doctrine->getRepository(Personne::class);
         $nbPersonne = $repository->count([]);
         // 24
@@ -65,7 +77,13 @@ class PersonneController extends AbstractController
         return $this->render('personne/detail.html.twig', ['personne' => $personne]);
     }
     #[Route('/edit/{id?0}', name: 'personne.edit')]
-    public function addPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request): Response
+    public function addPersonne(
+        Personne $personne = null,
+        ManagerRegistry $doctrine,
+        Request $request,
+        UploaderService $uploaderService,
+        MailerService $mailer
+    ): Response
     {
         $new = false;
         //$this->getDoctrine() : Version Sf <= 5
@@ -81,9 +99,17 @@ class PersonneController extends AbstractController
         // Mn formulaire va aller traiter la requete
         $form->handleRequest($request);
         //Est ce que le formulaire a été soumis
-        if($form->isSubmitted()) {
+        if($form->isSubmitted() && $form->isValid()) {
             // si oui,
             // on va ajouter l'objet personne dans la base de données
+            $photo = $form->get('photo')->getData();
+            // this condition is needed because the 'brochure' field is not required
+            // so the PDF file must be processed only when a file is uploaded
+            if ($photo) {
+                $directory = $this->getParameter('personne_directory');
+                $personne->setImage($uploaderService->uploadFile($photo, $directory));
+            }
+
             $manager = $doctrine->getManager();
             $manager->persist($personne);
 
@@ -94,7 +120,9 @@ class PersonneController extends AbstractController
             } else {
                 $message = " a été mis à jour avec succès";
             }
+            $mailMessage = $personne->getFirstname().' '.$personne->getName().' '.$message;
             $this->addFlash('success',$personne->getName(). $message );
+            $mailer->sendEmail(content: $mailMessage);
             // Rediriger verts la liste des personne
             return $this->redirectToRoute('personne.list');
         } else {

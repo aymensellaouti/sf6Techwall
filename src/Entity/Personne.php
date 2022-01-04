@@ -7,6 +7,7 @@ use App\Traits\TimeStampTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=PersonneRepository::class)
@@ -26,6 +27,8 @@ class Personne
 
     /**
      * @ORM\Column(type="string", length=50)
+     * @Assert\NotBlank(message="Veuillez renseigner ce champ")
+     * @Assert\Length(min=4, minMessage="Veuillez avoir au moins 4 caractères")
      */
     private $firstname;
 
@@ -54,6 +57,11 @@ class Personne
      * @ORM\ManyToOne(targetEntity=Job::class, inversedBy="personnes")
      */
     private $job;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $image;
 
 
     public function __construct()
@@ -147,6 +155,18 @@ class Personne
     public function setJob(?Job $job): self
     {
         $this->job = $job;
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): self
+    {
+        $this->image = $image;
 
         return $this;
     }
