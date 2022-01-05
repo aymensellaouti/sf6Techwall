@@ -37,6 +37,7 @@
             <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                 <li><a class="dropdown-item" href="{{path('app_login')}}">Login</a></li>
+                <li><a class="dropdown-item" href="{{path('app_register')}}">Register</a></li>
                 <li><a class="dropdown-item" href="{{path('app_logout')}}">Logout</a></li>
             </ul>
         </li>
@@ -100,8 +101,12 @@
             </div>
             <div class="sb-sidenav-footer">
                 <div class="small">Logged in as:</div>
-                Start Bootstrap
-            </div>
+                {% if app.user %}
+                    {{ app.user.email }}
+                {% else %}
+                    Anonymous
+                {% endif %}
+                </div>
         </nav>
     </div>
     <div id="layoutSidenav_content">
