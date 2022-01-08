@@ -10,6 +10,7 @@ use App\Service\PdfService;
 use App\Service\UploaderService;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -18,7 +19,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
-#[Route('personne')]
+#[
+    Route('personne'),
+    IsGranted('ROLE_USER')
+]
 class PersonneController extends AbstractController
 {
 
@@ -55,9 +59,12 @@ class PersonneController extends AbstractController
         );
     }
 
-    #[Route('/alls/{page?1}/{nbre?12}', name: 'personne.list.alls')]
+    #[
+        Route('/alls/{page?1}/{nbre?12}', name: 'personne.list.alls'),
+        IsGranted("ROLE_USER")
+    ]
     public function indexAlls(ManagerRegistry $doctrine, $page, $nbre): Response {
-        echo ($this->helper->sayCc());
+//        echo ($this->helper->sayCc());
         $repository = $doctrine->getRepository(Personne::class);
         $nbPersonne = $repository->count([]);
         // 24
@@ -92,6 +99,7 @@ class PersonneController extends AbstractController
         MailerService $mailer
     ): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $new = false;
         //$this->getDoctrine() : Version Sf <= 5
         if (!$personne) {
@@ -142,7 +150,10 @@ class PersonneController extends AbstractController
         }
 
     }
-    #[Route('/delete/{id}', name: 'personne.delete')]
+    #[
+        Route('/delete/{id}', name: 'personne.delete'),
+        IsGranted('ROLE_ADMIN')
+    ]
     public function deletePersonne(Personne $personne = null, ManagerRegistry $doctrine): RedirectResponse {
         // Récupérer la personne
         if ($personne) {

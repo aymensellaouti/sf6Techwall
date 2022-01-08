@@ -13,12 +13,14 @@
             <a href="{{ path('personne.detail', {id: personne.id}) }}" class="card-link">
                 <i class="fas fa-info-circle"></i>
             </a>
-            <a href="{{ path('personne.delete', {id: personne.id}) }}" class="card-link">
-                <i class="fas fa-user-times"></i>
-            </a>
-            <a href="{{ path('personne.edit', {id: personne.id}) }}" class="card-link">
-                <i class="fas fa-user-edit"></i>
-            </a>
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('personne.delete', {id: personne.id}) }}" class="card-link">
+                    <i class="fas fa-user-times"></i>
+                </a>
+                <a href="{{ path('personne.edit', {id: personne.id}) }}" class="card-link">
+                    <i class="fas fa-user-edit"></i>
+                </a>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
