@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Personne;
+use App\Event\AddPersonneEvent;
+use App\Event\ListAllPersonnesEvent;
 use App\Form\PersonneType;
 use App\Service\Helpers;
 use App\Service\MailerService;
@@ -12,6 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +29,11 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 class PersonneController extends AbstractController
 {
 
-    public function __construct(private LoggerInterface $logger, private Helpers $helper)
+    public function __construct(
+        private LoggerInterface $logger,
+        private Helpers $helper,
+        private EventDispatcherInterface $dispatcher
+    )
     {}
 
     #[Route('/', name: 'personne.list')]
@@ -71,6 +78,8 @@ class PersonneController extends AbstractController
         $nbrePage = ceil($nbPersonne / $nbre) ;
 
         $personnes = $repository->findBy([], [],$nbre, ($page - 1 ) * $nbre);
+        $listAllPersonneEvent = new ListAllPersonnesEvent(count($personnes));
+        $this->dispatcher->dispatch($listAllPersonneEvent, ListAllPersonnesEvent::LIST_ALL_PERSONNE_EVENT);
 
         return $this->render('personne/index.html.twig', [
             'personnes' => $personnes,
@@ -135,10 +144,13 @@ class PersonneController extends AbstractController
 
             $manager->flush();
             // Afficher un mssage de succès
-
-            $mailMessage = $personne->getFirstname().' '.$personne->getName().' '.$message;
+            if($new) {
+                // On a créer notre evenenement
+                $addPersonneEvent = new AddPersonneEvent($personne);
+                // On va maintenant dispatcher cet événement
+                $this->dispatcher->dispatch($addPersonneEvent, AddPersonneEvent::ADD_PERSONNE_EVENT);
+            }
             $this->addFlash('success',$personne->getName(). $message );
-            $mailer->sendEmail(content: $mailMessage);
             // Rediriger verts la liste des personne
             return $this->redirectToRoute('personne.list');
         } else {
