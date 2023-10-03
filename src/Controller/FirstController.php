@@ -32,6 +32,15 @@ class FirstController extends AbstractController
         ]);
     }
 
+    #[Route('/', name: 'first_post', methods: ['POST'])]
+    public function firstPost(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+//        dump($request);
+        // chercher au la abse de données vos users
+        return $this->json($request->toArray());
+    }
+
 //    #[Route('/sayHello/{name}/{firstname}', name: 'say.hello')]
     public function sayHello(Request $request, $name, $firstname): Response
     {
