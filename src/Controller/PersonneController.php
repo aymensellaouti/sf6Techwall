@@ -37,7 +37,7 @@ class PersonneController extends AbstractController
     {}
 
     #[Route('/', name: 'personne.list')]
-    public function index(ManagerRegistry $doctrine): Response {
+    public function index(ManagerRegistry $doctrine, Request $request): Response {
         $repository = $doctrine->getRepository(Personne::class);
         $personnes = $repository->findAll();
         return $this->render('personne/index.html.twig', ['personnes' => $personnes]);
@@ -152,7 +152,9 @@ class PersonneController extends AbstractController
             }
             $this->addFlash('success',$personne->getName(). $message );
             // Rediriger verts la liste des personne
-            return $this->redirectToRoute('personne.list');
+
+            return $this->forward("App\Controller\PersonneController::index");
+//            return $this->redirectToRoute('personne.list');
         } else {
             //Sinon
             //On affiche notre formulaire

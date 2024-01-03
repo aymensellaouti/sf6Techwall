@@ -2,6 +2,9 @@
 
 {% block body %}
  <div class="alert alert-success">
+     {% if personne.image %}
+     <img class="rounded-circle" width="50" height="50" src="{{ asset('uploads/personnes/')~personne.image }}">
+     {% endif %}
      {{ personne.firstname }} {{ personne.name}} a {{ personne.age }} ans
   {% if app.user %}
      <p>Created By : {{ app.user.email }}</p>

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use FontLib\Table\Type\name;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -55,6 +56,22 @@ class FirstController extends AbstractController
         name: 'multiplication'
     )]
     public function multiplication($entier1, $entier2) {
+        $resultat = $entier1 * $entier2;
+        return new Response("<h1>$resultat</h1>");
+    }
+
+    #[
+        Route(
+            '/Formation/{annee}/{slug}',
+            name:'formation',
+            requirements: ['annee' => '\d{2}'],
+            defaults: ['slug' => 'boost-it']
+        )
+    ]
+//, name=”formation”, requirements= {
+//“annee” = “\d{2}”, “format”=”css|html”}, defaults={“format”=”html”} "")
+
+    public function multiplication2($entier1, $entier2) {
         $resultat = $entier1 * $entier2;
         return new Response("<h1>$resultat</h1>");
     }
